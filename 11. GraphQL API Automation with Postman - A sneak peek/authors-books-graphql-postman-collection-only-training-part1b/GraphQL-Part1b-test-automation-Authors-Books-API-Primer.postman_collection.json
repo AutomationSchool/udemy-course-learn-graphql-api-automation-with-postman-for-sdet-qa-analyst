@@ -1,0 +1,920 @@
+{
+	"info": {
+		"_postman_id": "37d3b65c-b6d6-492d-866c-f77a34dbb9fd",
+		"name": "GraphQL-Part1b-Test-Automation-Authors-Books-API-Primer",
+		"description": "An introduction to using GraphQL with Postman to query the Authors / Books GraphQL API.",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"item": [
+		{
+			"name": "initialization / prep work",
+			"item": [
+				{
+					"name": "0. check API is running, initialize system (e.g. valid schemas)",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"id": "af4aa36e-6dcc-4a86-a697-0606fd036984",
+								"exec": [
+									"pm.test('status is 200', function() {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"",
+									"pm.test('response is in json', function() {",
+									"    let response = pm.response.json();",
+									"});",
+									"",
+									"pm.test('check response message', function() {",
+									"    let response = pm.response.json();",
+									"    pm.expect(response).has.property('message')",
+									"    pm.expect(response.message).is.eql('Welcome to the Authors Books GraphQL API')",
+									"    ",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						},
+						{
+							"listen": "prerequest",
+							"script": {
+								"id": "03e4099d-2676-4dc8-b318-4abbed09189a",
+								"exec": [
+									"let authorWithIdOnlySchema = {",
+									"    \"type\": \"object\",",
+									"    \"properties\": {",
+									"        \"id\": { ",
+									"            \"type\": \"integer\" ",
+									"        }",
+									"    },",
+									"    \"required\": [ \"id\"]",
+									"};",
+									"",
+									"//Save it in the env. We will use this env variable value in downstream tests to validate response schema ",
+									"pm.environment.set('authorWithIdOnlySchema', authorWithIdOnlySchema);",
+									"",
+									"let authorsWithIdOnlySchema = {",
+									"  \"type\": \"array\",",
+									"  \"items\": {",
+									"    \"type\": \"object\",",
+									"    \"properties\": {",
+									"        \"id\": { ",
+									"            \"type\": \"string\" ",
+									"        }",
+									"    },",
+									"    \"required\": [ \"id\"]",
+									"  }",
+									"};",
+									"",
+									"//Save it in the env. We will use this env variable value in downstream tests to validate response schema ",
+									"pm.environment.set('authorsWithIdOnlySchema', authorsWithIdOnlySchema);"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}",
+							"host": [
+								"{{baseUrl}}"
+							]
+						}
+					},
+					"response": []
+				}
+			],
+			"event": [
+				{
+					"listen": "prerequest",
+					"script": {
+						"id": "52e7cdd1-4f49-437f-a944-e502962d53d3",
+						"type": "text/javascript",
+						"exec": [
+							""
+						]
+					}
+				},
+				{
+					"listen": "test",
+					"script": {
+						"id": "17ef4d81-2ab2-44d3-8395-f520b460f855",
+						"type": "text/javascript",
+						"exec": [
+							""
+						]
+					}
+				}
+			],
+			"protocolProfileBehavior": {}
+		},
+		{
+			"name": "queries (read only, no add/update/delete)",
+			"item": [
+				{
+					"name": "1. query all authors id field",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"id": "18db6e8a-cfa6-4f6d-8eab-e636d84a7f6e",
+								"exec": [
+									"pm.test('status is 200', function() {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"",
+									"pm.test('response is in json', function() {",
+									"    let response = pm.response.json();",
+									"});",
+									"",
+									"pm.test('validate response schema valid i.e., array of authors with \"id\" property only', function() {",
+									"    ",
+									"    let authorsResponse = pm.response.json().data.authors;",
+									"    ",
+									"    //schema validation",
+									"    let authorsWithIdOnlySchema = pm.environment.get('authorsWithIdOnlySchema');",
+									"    let validationResult = tv4.validate(authorsResponse, authorsWithIdOnlySchema);",
+									"    ",
+									"    if(!validationResult) {",
+									"        console.error(\"validation failed with error : \" + tv4.error);",
+									"    }",
+									"    ",
+									"    pm.expect(validationResult).to.be.true;",
+									"});",
+									"",
+									"pm.test('should have 3 test authors initially', function() {",
+									"    let response = pm.response.json();",
+									"    let responseAuthors = response.data.authors;",
+									"    console.info('# of authors', responseAuthors.length)",
+									"    pm.expect(responseAuthors.length === 3).to.be.true;",
+									"});",
+									"",
+									""
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"name": "Content-Type",
+								"type": "text",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "graphql",
+							"graphql": {
+								"query": "query {\n  authors {\n    id\n  }\n}",
+								"variables": ""
+							}
+						},
+						"url": {
+							"raw": "{{baseUrl}}/{{graphqlPath}}",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"{{graphqlPath}}"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "2. query all authors id first & last name fields",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"name": "Content-Type",
+								"type": "text",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "graphql",
+							"graphql": {
+								"query": "query {\n  authors {\n    id\n    firstName\n    lastName\n  }\n}",
+								"variables": ""
+							}
+						},
+						"url": {
+							"raw": "{{baseUrl}}/{{graphqlPath}}",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"{{graphqlPath}}"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "3. query all authors id name &  shortbio fields",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"name": "Content-Type",
+								"type": "text",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "graphql",
+							"graphql": {
+								"query": "query {\n  authors {\n    id\n    firstName\n    lastName\n    shortBio\n  }\n}",
+								"variables": ""
+							}
+						},
+						"url": {
+							"raw": "{{baseUrl}}/{{graphqlPath}}",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"{{graphqlPath}}"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "4. query all authors id name shortbio & dob fields",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"name": "Content-Type",
+								"type": "text",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "graphql",
+							"graphql": {
+								"query": "query {\n  authors {\n    id\n    firstName\n    lastName\n    shortBio\n    dateOfBirth\n  }\n}",
+								"variables": ""
+							}
+						},
+						"url": {
+							"raw": "{{baseUrl}}/{{graphqlPath}}",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"{{graphqlPath}}"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "5. query all books id field",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "graphql",
+							"graphql": {
+								"query": "query {\n  books {\n    id\n  }\n}",
+								"variables": ""
+							}
+						},
+						"url": {
+							"raw": "{{baseUrl}}/{{graphqlPath}}",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"{{graphqlPath}}"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "6. query all books ids title fields",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "graphql",
+							"graphql": {
+								"query": "query {\n  books {\n    id\n    title\n  }\n}",
+								"variables": ""
+							}
+						},
+						"url": {
+							"raw": "{{baseUrl}}/{{graphqlPath}}",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"{{graphqlPath}}"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "7. query all author names and their book titles",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"id": "4bb75fe4-74f0-4fb6-8309-f6ba5312d39b",
+								"exec": [
+									""
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"name": "Content-Type",
+								"type": "text",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "graphql",
+							"graphql": {
+								"query": "query {\n  authors {\n    firstName\n    lastName\n    books {\n      title\n    }\n  }\n}",
+								"variables": ""
+							}
+						},
+						"url": {
+							"raw": "{{baseUrl}}/{{graphqlPath}}",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"{{graphqlPath}}"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "8. query all author names and their book titles with year published",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"id": "4bb75fe4-74f0-4fb6-8309-f6ba5312d39b",
+								"exec": [
+									""
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"name": "Content-Type",
+								"type": "text",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "graphql",
+							"graphql": {
+								"query": "query {\n  authors {\n    firstName\n    lastName\n    books {\n      title\n      yearPublished\n    }\n  }\n}",
+								"variables": ""
+							}
+						},
+						"url": {
+							"raw": "{{baseUrl}}/{{graphqlPath}}",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"{{graphqlPath}}"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "9. query author1 by id",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "graphql",
+							"graphql": {
+								"query": "query ($authorId: ID!) {\n author (id: $authorId) {\n    firstName   \n    lastName\n  }   \n}",
+								"variables": "{\n\t\"authorId\": {{authorId1}}\n}"
+							}
+						},
+						"url": {
+							"raw": "{{baseUrl}}/{{graphqlPath}}",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"{{graphqlPath}}"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "10. query author2 by id",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "graphql",
+							"graphql": {
+								"query": "query ($authorId: ID!) {\n author (id: $authorId) {\n    firstName   \n    lastName\n  }   \n}",
+								"variables": "{\n\t\"authorId\": {{authorId2}}\n}"
+							}
+						},
+						"url": {
+							"raw": "{{baseUrl}}/{{graphqlPath}}",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"{{graphqlPath}}"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "11. query book1 by id",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "graphql",
+							"graphql": {
+								"query": "query ($bookId: ID!) {\n book (id: $bookId) {\n    title\n    yearPublished\n  }   \n}",
+								"variables": "{\n\t\"bookId\": {{bookId1}}\n}"
+							}
+						},
+						"url": {
+							"raw": "{{baseUrl}}/{{graphqlPath}}",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"{{graphqlPath}}"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "12. query book2 by id",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "graphql",
+							"graphql": {
+								"query": "query ($bookId: ID!) {\n book (id: $bookId) {\n    title\n    yearPublished\n  }   \n}",
+								"variables": "{\n\t\"bookId\": {{bookId2}}\n}"
+							}
+						},
+						"url": {
+							"raw": "{{baseUrl}}/{{graphqlPath}}",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"{{graphqlPath}}"
+							]
+						}
+					},
+					"response": []
+				}
+			],
+			"event": [
+				{
+					"listen": "prerequest",
+					"script": {
+						"id": "bd1db337-8228-40ac-9aa3-b3d08b1f0c47",
+						"type": "text/javascript",
+						"exec": [
+							""
+						]
+					}
+				},
+				{
+					"listen": "test",
+					"script": {
+						"id": "4a7a70fd-b106-457d-9e36-88f3c50d93e9",
+						"type": "text/javascript",
+						"exec": [
+							""
+						]
+					}
+				}
+			],
+			"protocolProfileBehavior": {}
+		},
+		{
+			"name": "mutations (add or update or delete)",
+			"item": [
+				{
+					"name": "add/update - authors",
+					"item": [
+						{
+							"name": "add new author",
+							"request": {
+								"method": "POST",
+								"header": [],
+								"body": {
+									"mode": "graphql",
+									"graphql": {
+										"query": "mutation CreateNewAuthor($author: AuthorInput!) {\n  createAuthor  (author: $author) {\n    firstName\n    lastName\n    shortBio\n    dateOfBirth\n  }\n}",
+										"variables": "{\n\t\"author\": {\n\t   \"firstName\": \"{{newAuthorFirstName}}\",\n\t   \"lastName\": \"{{newAuthorLastName}}\",\n\t   \"shortBio\": \"{{newAuthorShortBio}}\",\n\t   \"dateOfBirth\": \"{{newAuthorDataOfBirth}}\"\n\t}\n}\n"
+									}
+								},
+								"url": {
+									"raw": "{{baseUrl}}/{{graphqlPath}}",
+									"host": [
+										"{{baseUrl}}"
+									],
+									"path": [
+										"{{graphqlPath}}"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "query new author by id",
+							"request": {
+								"method": "POST",
+								"header": [],
+								"body": {
+									"mode": "graphql",
+									"graphql": {
+										"query": "query ($authorId: ID!) {\n author (id: $authorId) {\n    id\n    firstName   \n    lastName\n    shortBio\n    dateOfBirth\n  }   \n}",
+										"variables": "{\n\t\"authorId\": {{newAuthorId}}\n}"
+									}
+								},
+								"url": {
+									"raw": "{{baseUrl}}/{{graphqlPath}}",
+									"host": [
+										"{{baseUrl}}"
+									],
+									"path": [
+										"{{graphqlPath}}"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "update new author's shortbio",
+							"request": {
+								"method": "POST",
+								"header": [],
+								"body": {
+									"mode": "graphql",
+									"graphql": {
+										"query": "mutation UpdateAuthor($id: ID!, $author: AuthorInput!) {\n  updateAuthor  (id: $id, author: $author) {\n    id\n    firstName\n    lastName\n    shortBio\n    dateOfBirth\n  }\n}",
+										"variables": "{\n\t\"id\": \"{{newAuthorId}}\",\n\t\"author\": {\n\t   \"firstName\": \"{{newAuthorFirstName}}\",\n\t   \"lastName\": \"{{newAuthorLastName}}\",\n\t   \"shortBio\": \"{{newAuthorShortBioUpdated}}\",\n\t   \"dateOfBirth\": \"{{newAuthorDataOfBirth}}\"\n\t}\n}\n"
+									}
+								},
+								"url": {
+									"raw": "{{baseUrl}}/{{graphqlPath}}",
+									"host": [
+										"{{baseUrl}}"
+									],
+									"path": [
+										"{{graphqlPath}}"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "query new author by id (after shortbio update)",
+							"request": {
+								"method": "POST",
+								"header": [],
+								"body": {
+									"mode": "graphql",
+									"graphql": {
+										"query": "query ($authorId: ID!) {\n author (id: $authorId) {\n    id\n    firstName   \n    lastName\n    shortBio\n    dateOfBirth\n  }   \n}",
+										"variables": "{\n\t\"authorId\": {{newAuthorId}}\n}"
+									}
+								},
+								"url": {
+									"raw": "{{baseUrl}}/{{graphqlPath}}",
+									"host": [
+										"{{baseUrl}}"
+									],
+									"path": [
+										"{{graphqlPath}}"
+									]
+								}
+							},
+							"response": []
+						}
+					],
+					"event": [
+						{
+							"listen": "prerequest",
+							"script": {
+								"id": "380daac9-7949-47ee-a41b-0a8056b25d1d",
+								"type": "text/javascript",
+								"exec": [
+									""
+								]
+							}
+						},
+						{
+							"listen": "test",
+							"script": {
+								"id": "2a35c5ae-a4fb-4b17-8bf8-09e863b311e9",
+								"type": "text/javascript",
+								"exec": [
+									""
+								]
+							}
+						}
+					],
+					"protocolProfileBehavior": {},
+					"_postman_isSubFolder": true
+				},
+				{
+					"name": "add/update - books",
+					"item": [
+						{
+							"name": "add new book",
+							"request": {
+								"method": "POST",
+								"header": [],
+								"body": {
+									"mode": "graphql",
+									"graphql": {
+										"query": "mutation CreateNewBook($book: BookInput!) {\n  createBook  (book: $book) {\n    id\n    title\n    yearPublished\n    author {\n      id\n      firstName\n      lastName\n    }\n  }\n}",
+										"variables": "{\n\t\"book\": {\n\t   \"title\": \"{{newBookTitle}}\",\n\t   \"yearPublished\": {{newBookYearPublished}},\n\t   \"authorId\" : \"{{newAuthorId}}\"\n\t}\n}\n"
+									}
+								},
+								"url": {
+									"raw": "{{baseUrl}}/{{graphqlPath}}",
+									"host": [
+										"{{baseUrl}}"
+									],
+									"path": [
+										"{{graphqlPath}}"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "query new book by id",
+							"request": {
+								"method": "POST",
+								"header": [],
+								"body": {
+									"mode": "graphql",
+									"graphql": {
+										"query": "query ($bookId: ID!) {\n book (id: $bookId) {\n    id\n    title\n    yearPublished\n    author {\n      id\n      firstName\n      lastName\n    }\n  }   \n}",
+										"variables": "{\n\t\"bookId\": {{newBookId}}\n}"
+									}
+								},
+								"url": {
+									"raw": "{{baseUrl}}/{{graphqlPath}}",
+									"host": [
+										"{{baseUrl}}"
+									],
+									"path": [
+										"{{graphqlPath}}"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "update new book title",
+							"request": {
+								"method": "POST",
+								"header": [],
+								"body": {
+									"mode": "graphql",
+									"graphql": {
+										"query": "mutation UpdateNewBook($id: ID!, $book: BookInput!) {\n  updateBook  (id: $id, book: $book) {\n    id\n    title\n    yearPublished\n    author {\n      id\n      firstName\n      lastName\n    }\n  }\n}",
+										"variables": "{\n\t\"id\": \"{{newBookId}}\", \n\t\"book\": {\n\t   \"title\": \"{{newBookTitleUpdated}}\",\n\t   \"yearPublished\": {{newBookYearPublished}},\n\t   \"authorId\" : \"{{newAuthorId}}\"\n\t}\n}\n"
+									}
+								},
+								"url": {
+									"raw": "{{baseUrl}}/{{graphqlPath}}",
+									"host": [
+										"{{baseUrl}}"
+									],
+									"path": [
+										"{{graphqlPath}}"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "query new book by id (after title update)",
+							"request": {
+								"method": "POST",
+								"header": [],
+								"body": {
+									"mode": "graphql",
+									"graphql": {
+										"query": "query ($bookId: ID!) {\n book (id: $bookId) {\n    id\n    title\n    yearPublished\n    author {\n      id\n      firstName\n      lastName\n    }\n  }   \n}",
+										"variables": "{\n\t\"bookId\": {{newBookId}}\n}"
+									}
+								},
+								"url": {
+									"raw": "{{baseUrl}}/{{graphqlPath}}",
+									"host": [
+										"{{baseUrl}}"
+									],
+									"path": [
+										"{{graphqlPath}}"
+									]
+								}
+							},
+							"response": []
+						}
+					],
+					"event": [
+						{
+							"listen": "prerequest",
+							"script": {
+								"id": "8da513c4-f4e2-4244-afdb-c87e9173deee",
+								"type": "text/javascript",
+								"exec": [
+									""
+								]
+							}
+						},
+						{
+							"listen": "test",
+							"script": {
+								"id": "78117a8c-7363-479d-849a-5c840e8c2149",
+								"type": "text/javascript",
+								"exec": [
+									""
+								]
+							}
+						}
+					],
+					"protocolProfileBehavior": {},
+					"_postman_isSubFolder": true
+				},
+				{
+					"name": "delete book/author",
+					"item": [
+						{
+							"name": "delete the newly added author",
+							"request": {
+								"method": "POST",
+								"header": [],
+								"body": {
+									"mode": "graphql",
+									"graphql": {
+										"query": "mutation DeleteAuthor($id: ID!) {\n  deleteAuthor  (id: $id) {\n    id\n    firstName\n    lastName\n    shortBio\n    dateOfBirth\n  }\n}",
+										"variables": "{\n\t\"id\": \"{{newAuthorId}}\"\n}\n"
+									}
+								},
+								"url": {
+									"raw": "{{baseUrl}}/{{graphqlPath}}",
+									"host": [
+										"{{baseUrl}}"
+									],
+									"path": [
+										"{{graphqlPath}}"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "query new author by id (after deleting author)",
+							"request": {
+								"method": "POST",
+								"header": [],
+								"body": {
+									"mode": "graphql",
+									"graphql": {
+										"query": "query ($authorId: ID!) {\n author (id: $authorId) {\n    id\n    firstName   \n    lastName\n    shortBio\n    dateOfBirth\n  }   \n}",
+										"variables": "{\n\t\"authorId\": {{newAuthorId}}\n}"
+									}
+								},
+								"url": {
+									"raw": "{{baseUrl}}/{{graphqlPath}}",
+									"host": [
+										"{{baseUrl}}"
+									],
+									"path": [
+										"{{graphqlPath}}"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "delete the newly added book",
+							"request": {
+								"method": "POST",
+								"header": [],
+								"body": {
+									"mode": "graphql",
+									"graphql": {
+										"query": "mutation DeleteBook($id: ID!) {\n  deleteBook  (id: $id) {\n    id\n    title\n    yearPublished\n  }\n}",
+										"variables": "{\n\t\"id\": \"{{newBookId}}\"\n}\n"
+									}
+								},
+								"url": {
+									"raw": "{{baseUrl}}/{{graphqlPath}}",
+									"host": [
+										"{{baseUrl}}"
+									],
+									"path": [
+										"{{graphqlPath}}"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "query new book by id (after deleting it)",
+							"request": {
+								"method": "POST",
+								"header": [],
+								"body": {
+									"mode": "graphql",
+									"graphql": {
+										"query": "query ($bookId: ID!) {\n book (id: $bookId) {\n    id\n    title\n    yearPublished\n    author {\n        id\n    }\n  }   \n}",
+										"variables": "{\n\t\"bookId\": {{newBookId}}\n}"
+									}
+								},
+								"url": {
+									"raw": "{{baseUrl}}/{{graphqlPath}}",
+									"host": [
+										"{{baseUrl}}"
+									],
+									"path": [
+										"{{graphqlPath}}"
+									]
+								}
+							},
+							"response": []
+						}
+					],
+					"protocolProfileBehavior": {},
+					"_postman_isSubFolder": true
+				}
+			],
+			"protocolProfileBehavior": {}
+		}
+	],
+	"event": [
+		{
+			"listen": "prerequest",
+			"script": {
+				"id": "966f9fda-b7c1-4670-8700-10900819f9f7",
+				"type": "text/javascript",
+				"exec": [
+					""
+				]
+			}
+		},
+		{
+			"listen": "test",
+			"script": {
+				"id": "a2d0cafb-83b5-446c-94dd-0f97d06fe6b7",
+				"type": "text/javascript",
+				"exec": [
+					""
+				]
+			}
+		}
+	],
+	"protocolProfileBehavior": {}
+}
