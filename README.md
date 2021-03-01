@@ -6,10 +6,10 @@ https://www.udemy.com/course/learn-graphql-api-automation-with-postman-for-sdet-
 
 ## Updated code 
 
-Updated code for these chapters will available in the corresponding sub-folders.
-  - 5. Download code and run API
-  - 11. GraphQL API Automation with Postman - A sneak peek
-  - 13. GraphQL Development - Add new query to search authors by keyword
+Updated code for these chapters 5, 11, 13 will available in the corresponding sub-folders.
+  - 5 Download code and run API
+  - 11 GraphQL API Automation with Postman - A sneak peek
+  - 13 GraphQL Development - Add new query to search authors by keyword
 
 Thank you,
 Kiran
